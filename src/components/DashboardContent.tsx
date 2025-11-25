@@ -205,26 +205,27 @@ export default function DashboardContent() {
     setStats((s) => ({ ...s, adsActive: ads.filter((a) => a.status === "active").length }));
   }, [ads]);
 
-  const loadDashboardSummary = async () => {
-    setLoading(true);
-    try {
-      const response = await adminAPI.getDashboardSummary();
-      if (response.data) {
-        setStats({
-          users: response.data.users?.total || 0,
-          activeToday: response.data.users?.newLast7Days || 0,
-          photosToday: response.data.posts?.last24h || 0,
-          adsActive: response.data.ads?.active || 0,
-        });
-        setPendingRefunds(response.data.refunds?.pending || 0);
-      }
-    } catch (error) {
-      console.error('Failed to load dashboard summary:', error);
-      // Keep default values on error
-    } finally {
-      setLoading(false);
+  // src/components/DashboardContent.tsx
+
+const loadDashboardSummary = async () => {
+  setLoading(true);
+  try {
+    // THÊM: "as any" vào cuối dòng này
+    const response = await adminAPI.getDashboardSummary() as any; 
+    
+    if (response.data) {
+      setStats({
+        users: response.data.users?.total || 0,
+        activeToday: response.data.users?.newLast7Days || 0,
+        photosToday: response.data.posts?.last24h || 0,
+        adsActive: response.data.ads?.active || 0,
+      });
+      setPendingRefunds(response.data.refunds?.pending || 0);
     }
-  };
+  } catch (error) {
+    // ...
+  }
+};
 
   const filteredAds = useMemo(() => {
     return ads.filter((a) => {
