@@ -71,7 +71,7 @@ export default function AdminLayout({ children, appName = 'SocialAdmin', onLogou
     setIsDarkMode(!isDarkMode);
   };
 
-  const isActive = (path) => {
+  const isActive = (path: string) => {
     if (path === '/admin') {
       return location.pathname === '/admin';
     }

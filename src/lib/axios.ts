@@ -1,4 +1,4 @@
-import axios, { type AxiosError } from 'axios';
+import axios, { AxiosHeaders, type AxiosError } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
@@ -17,10 +17,9 @@ apiClient.interceptors.request.use(
 
     // Attach token for all API requests (except public endpoints like /api/auth/login)
     if (token && !config.url?.includes('/api/auth/login') && !config.url?.includes('/api/auth/register')) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
+      const headers = AxiosHeaders.from(config.headers ?? {});
+      headers.set('Authorization', `Bearer ${token}`);
+      config.headers = headers;
     }
 
     return config;
