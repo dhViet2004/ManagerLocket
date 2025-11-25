@@ -14,7 +14,7 @@ interface UserManagementProps {
   onBack?: () => void;
 }
 
-const UserManagement: React.FC<UserManagementProps> = {...} => {
+const UserManagement: React.FC<UserManagementProps> = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
