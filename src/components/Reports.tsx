@@ -1,4 +1,4 @@
-import RevenueReport from './RevenueReport';
+import RevenueReport from './RevenueReport.jsx';
 
 export default function Reports() {
   return <RevenueReport />;
