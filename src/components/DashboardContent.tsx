@@ -80,19 +80,6 @@ function saveAds(ads: Ad[]) {
   localStorage.setItem(LS_KEY, JSON.stringify(ads));
 }
 
-function toLocalInputValue(iso?: string) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const tz = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return tz.toISOString().slice(0, 16);
-}
-
-function fromLocalInputValue(v: string) {
-  if (!v) return undefined;
-  const d = new Date(v);
-  return d.toISOString();
-}
-
 function fmtDate(iso: string) {
   const d = new Date(iso);
   return d.toLocaleString();
@@ -120,7 +107,7 @@ function StatCard({
   label: string;
   value: string | number;
   hint?: string;
-  color?: 'blue' | 'green' | 'purple' | 'default';
+  color?: 'blue' | 'green' | 'purple' | 'default' | 'orange';
 }) {
   const colorConfig = {
     blue: {
@@ -154,6 +141,14 @@ function StatCard({
       value: 'text-gray-300',
       iconBg: 'bg-gray-700',
       shadow: 'shadow-gray-700/10',
+    },
+    orange: {
+      bg: 'bg-[#151A25]',
+      border: 'border-orange-500/20',
+      text: 'text-gray-400',
+      value: 'text-orange-300',
+      iconBg: 'bg-orange-500/10',
+      shadow: 'shadow-orange-500/10',
     },
   };
 
@@ -230,13 +225,6 @@ export default function DashboardContent() {
       setLoading(false);
     }
   };
-
-  const avgCap = useMemo(() => {
-    if (!ads.length) return 0;
-    const caps = ads.map((a) => a.frequency.perUserPerDay || 0);
-    const sum = caps.reduce((x, y) => x + y, 0);
-    return Math.round(sum / ads.length);
-  }, [ads]);
 
   const filteredAds = useMemo(() => {
     return ads.filter((a) => {

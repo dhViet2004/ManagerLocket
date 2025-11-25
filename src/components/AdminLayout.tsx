@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
   Users,
@@ -7,17 +8,22 @@ import {
   Megaphone,
   Moon,
   Sun,
-  Search,
   Bell,
   LogOut,
   RotateCcw,
   BarChart3,
   FileCheck,
-  User
+  User,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 
-const menuItems = [
+type MenuItem = {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+};
+
+const menuItems: MenuItem[] = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/admin/users', label: 'Users', icon: Users },
   { path: '/admin/posts', label: 'Posts', icon: FileText },
@@ -29,7 +35,13 @@ const menuItems = [
   { path: '/admin/profile', label: 'Profile', icon: User },
 ];
 
-export default function AdminLayout({ children }) {
+interface AdminLayoutProps {
+  children: ReactNode;
+  appName?: string;
+  onLogout?: () => void;
+}
+
+export default function AdminLayout({ children, appName = 'SocialAdmin', onLogout }: AdminLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const adminName = localStorage.getItem('adminName') || 'Alex Turner';
@@ -51,6 +63,7 @@ export default function AdminLayout({ children }) {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('adminName');
+    onLogout?.();
     navigate('/admin/login');
   };
 
@@ -83,7 +96,7 @@ export default function AdminLayout({ children }) {
             </svg>
           </div>
           <div>
-            <h1 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-bold text-lg leading-tight transition-colors`}>SocialAdmin</h1>
+            <h1 className={`${isDarkMode ? 'text-white' : 'text-gray-900'} font-bold text-lg leading-tight transition-colors`}>{appName}</h1>
             <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} transition-colors`}>Management Panel</p>
           </div>
         </div>

@@ -1,17 +1,43 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent, type DragEvent, type MouseEvent } from 'react';
 
-export default function ImageUpload({ label, value, onChange, error, onUrlChange, onUpload, uploadEndpoint }) {
+interface ImageUploadProps {
+  label: string;
+  value?: string;
+  onChange?: (url: string) => void;
+  error?: string;
+  onUrlChange?: (url: string) => void;
+  onUpload?: (file: File) => Promise<string>;
+  uploadEndpoint?: string;
+}
+
+type UploadResponse = {
+  data?: {
+    imageUrl?: string;
+  };
+  imageUrl?: string;
+  message?: string;
+};
+
+export default function ImageUpload({
+  label,
+  value,
+  onChange,
+  error,
+  onUrlChange,
+  onUpload,
+  uploadEndpoint,
+}: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState(value || '');
   const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Sync preview with value prop
   useEffect(() => {
     setPreview(value || '');
   }, [value]);
 
-  const handleFileSelect = async (file) => {
+  const handleFileSelect = async (file?: File) => {
     if (!file) return;
 
     // Validate file type
@@ -27,18 +53,24 @@ export default function ImageUpload({ label, value, onChange, error, onUrlChange
     }
 
     // Create local preview first
+    const shouldUpload = Boolean(uploadEndpoint || onUpload);
     const reader = new FileReader();
     reader.onloadend = () => {
-      const localPreview = reader.result;
-      setPreview(localPreview);
+      const localPreview = reader.result as string | null;
+      if (localPreview) {
+        setPreview(localPreview);
+        if (!shouldUpload) {
+          onChange?.(localPreview);
+        }
+      }
     };
     reader.readAsDataURL(file);
 
     // Upload to Cloudinary if uploadEndpoint or onUpload is provided
-    if (uploadEndpoint || onUpload) {
+    if (shouldUpload) {
       setUploading(true);
       try {
-        let imageUrl;
+        let imageUrl: string | undefined;
         if (onUpload) {
           // Custom upload function
           imageUrl = await onUpload(file);
@@ -49,11 +81,11 @@ export default function ImageUpload({ label, value, onChange, error, onUrlChange
           const response = await fetch(uploadEndpoint, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
             },
             body: formData,
           });
-          const data = await response.json();
+          const data = (await response.json()) as UploadResponse;
           if (!response.ok) {
             throw new Error(data.message || 'Upload failed');
           }
@@ -62,68 +94,57 @@ export default function ImageUpload({ label, value, onChange, error, onUrlChange
 
         if (imageUrl) {
           setPreview(imageUrl);
-          if (onChange) {
-            onChange(imageUrl);
-          }
+          onChange?.(imageUrl);
         }
       } catch (err) {
         console.error('Upload error:', err);
-        alert(err.message || 'Không thể tải ảnh lên. Vui lòng thử lại.');
+        const message = err instanceof Error ? err.message : 'Không thể tải ảnh lên. Vui lòng thử lại.';
+        alert(message);
         setPreview(''); // Clear preview on error
       } finally {
         setUploading(false);
       }
-    } else {
-      // No upload, just use local preview
-      if (onChange) {
-        onChange(reader.result);
-      }
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e) => {
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files[0];
-    handleFileSelect(file);
+    const file = e.dataTransfer.files?.[0];
+    void handleFileSelect(file);
   };
 
-  const handleFileInputChange = (e) => {
-    const file = e.target.files[0];
-    handleFileSelect(file);
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    void handleFileSelect(file);
   };
 
-  const handleClick = () => {
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
     fileInputRef.current?.click();
   };
 
-  const handleUrlChange = (e) => {
+  const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
     setPreview(url);
-    if (onUrlChange) {
-      onUrlChange(url);
-    }
+    onUrlChange?.(url);
   };
 
   const handleRemove = () => {
     setPreview('');
-    if (onChange) {
-      onChange('');
-    }
-    if (onUrlChange) {
-      onUrlChange('');
-    }
+    onChange?.('');
+    onUrlChange?.('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -182,10 +203,10 @@ export default function ImageUpload({ label, value, onChange, error, onUrlChange
             />
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemove();
-              }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemove();
+                }}
               className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
             >
               <svg

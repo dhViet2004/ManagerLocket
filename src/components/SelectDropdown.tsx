@@ -1,12 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 
-export default function SelectDropdown({ label, value, onChange, options, error }) {
+type SelectValue = string | number;
+
+export interface SelectOption {
+  value: SelectValue;
+  label: ReactNode;
+}
+
+interface SelectDropdownProps {
+  label: string;
+  value: SelectValue;
+  onChange: (value: SelectValue) => void;
+  options: SelectOption[];
+  error?: string;
+}
+
+export default function SelectDropdown({ label, value, onChange, options, error }: SelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -17,7 +32,7 @@ export default function SelectDropdown({ label, value, onChange, options, error 
 
   const selectedOption = options.find((opt) => opt.value === value) || options[0];
 
-  const handleSelect = (option) => {
+  const handleSelect = (option: SelectOption) => {
     onChange(option.value);
     setIsOpen(false);
   };

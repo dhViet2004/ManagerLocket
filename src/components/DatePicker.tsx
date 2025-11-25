@@ -1,10 +1,19 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 
-export default function DatePicker({ label, value, onChange, error, min, max }) {
+interface DatePickerProps {
+  label: string;
+  value?: string;
+  onChange: (isoValue?: string) => void;
+  error?: string;
+  min?: string;
+  max?: string;
+}
+
+export default function DatePicker({ label, value, onChange, error, min, max }: DatePickerProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   // Convert ISO string to local datetime-local format
-  const toLocalInputValue = (iso) => {
+  const toLocalInputValue = (iso?: string) => {
     if (!iso) return '';
     const d = new Date(iso);
     const tz = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -12,13 +21,13 @@ export default function DatePicker({ label, value, onChange, error, min, max }) 
   };
 
   // Convert local datetime-local format to ISO string
-  const fromLocalInputValue = (v) => {
+  const fromLocalInputValue = (v: string) => {
     if (!v) return undefined;
     const d = new Date(v);
     return d.toISOString();
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = fromLocalInputValue(e.target.value);
     onChange(newValue);
   };

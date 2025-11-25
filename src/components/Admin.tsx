@@ -9,10 +9,9 @@ import AuditLogs from './AuditLogs';
 
 interface AdminProps {
   onLogout: () => void;
-  username?: string;
 }
 
-export default function Admin({ onLogout, username }: AdminProps) {
+export default function Admin({ onLogout }: AdminProps) {
   const [currentView, setCurrentView] = useState('dashboard');
 
   const renderContent = () => {
@@ -38,8 +37,6 @@ export default function Admin({ onLogout, username }: AdminProps) {
 
   return (
     <AdminLayout
-      currentView={currentView}
-      onViewChange={setCurrentView}
       onLogout={onLogout}
       appName="Locket Admin"
     >
